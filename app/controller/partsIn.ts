@@ -87,6 +87,22 @@ exports.createCaptureStock = async (req: Request, res: Response) => {
     const mongoConnString = req.headers["x-tenant-mongodb-uri"];
     const code = req.headers["x-tenant-code"];
 
+    let responseData = {
+      "partNumber": "4E-060019-3R",
+      "quantity": 5000,
+      "lotNumber": [
+          "14773695"
+      ],
+      "manufactureDate": "-",
+      "invoiceDate": "2025-04-29T18:36:11.981Z",
+      "maker": "ROYAL OHM PB-FREE",
+      "internalPN": "INT51",
+      "partLocation": "LOC51",
+      "entryPreferences": "auto"
+      
+  }
+  return res.status(200).send(responseData);
+
     const CreateCaptureStock: ResponseInterface =
       await service.camera.CreateCaptureStock(
         req.body,
@@ -105,6 +121,7 @@ exports.createCaptureStock = async (req: Request, res: Response) => {
         data: CreateCaptureStock.data,
       }
     );
+    
     if (CreateCaptureStock.statusCode === 400) {
       return res.status(400).send(CreateCaptureStock);
     } else if (CreateCaptureStock.statusCode === 401) {
