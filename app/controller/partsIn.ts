@@ -74,10 +74,7 @@ exports.createPartsInStock = async (req: Request, res: Response) => {
 };
 
 
-exports.createCaptureStock = async (req: Request, res: Response) => {
-
-    console.log("hiiiiiiiiiiiiiiiiiiiiiiii");
- 
+exports.createCaptureStock = async (req: Request, res: Response) => { 
   partsInLogger.info(
     `${req.headers["x-tenant-code"]} - Creating a Capture Incoming Stock`
   );
@@ -86,33 +83,19 @@ exports.createCaptureStock = async (req: Request, res: Response) => {
     const userId: any = req.headers["x-user-id"];
     const mongoConnString = req.headers["x-tenant-mongodb-uri"];
     const code = req.headers["x-tenant-code"];
-
-    let responseData = {
-      "partNumber": "4E-060019-3R",
-      "quantity": 5000,
-      "lotNumber": [
-          "14773695"
-      ],
-      "manufactureDate": "-",
-      "invoiceDate": "2025-04-29T18:36:11.981Z",
-      "maker": "ROYAL OHM PB-FREE",
-      "internalPN": "INT51",
-      "partLocation": "LOC51",
-      "entryPreferences": "auto"
-      
-  }
-  return res.status(200).send(responseData);
-
-    const CreateCaptureStock: ResponseInterface =
+    const CreateCaptureStock: any =
       await service.camera.CreateCaptureStock(
         req.body,
         userId,
         mongoConnString,
         code
       );
+      console.log("CreateCaptureStockCreateCaptureStockCreateCaptureStock", CreateCaptureStock);
+      
     const getPartsStock = await service.partsServices.getPartsStock(
       mongoConnString
     );
+    
     await socketSendMessage("DATA/INCOMING-MANUAL", getPartsStock.data);
 
     partsInLogger.info(
@@ -135,7 +118,7 @@ exports.createCaptureStock = async (req: Request, res: Response) => {
     } else if (CreateCaptureStock.statusCode === 500) {
       return res.status(500).send(CreateCaptureStock);
     } else if (CreateCaptureStock.statusCode === 200) {
-      return res.status(200).send(CreateCaptureStock.data);
+      return res.status(200).send(CreateCaptureStock?.data);
     } else if (CreateCaptureStock.statusCode === 404) {
       return res.status(500).send(CreateCaptureStock);
     }

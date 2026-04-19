@@ -12,6 +12,7 @@ import {
 } from "@zxing/library";
 
 import Tesseract from "tesseract.js";
+  import { processScanner } from "../../../imageExtraction/scanner.js";
 
 
 
@@ -120,10 +121,55 @@ export const getAssociateTemplates = async (
 export const fastApi = async (data: any, mongoConnString: string) => {
   let fastapiUrl = config.config.fastapiUrl;
   try {
-    console.log("fastapiUrlfastapiUrlfastapiUrl", data);
 
-    const response = await axios.post(`${fastapiUrl}/scanner_new`, data);
-    return response.data;
+    // const response = await axios.post(`${fastapiUrl}/scanner_new`, data);
+    // response.data = {
+    //   ...response.data,
+      
+    // };
+    // console.log("reqDataaa", data);
+    
+     let responseData = {
+      data: { details :[{
+          "fields": ["partNumber", "quantity", "lotNumber", "manufactureDate", "internalPartNo"],
+          "partNumber": "4E-060019-3R",
+          "quantity": 5000,
+          "lotNumber": [
+              "14773695"
+          ],
+          "manufactureDate": "-",
+          "invoiceDate": "2025-04-29T18:36:11.981Z",
+          "maker": "ROYAL OHM PB-FREE",
+          "internalPartNo": "INT51",
+          "partLocation": "LOC51",
+          "entryPreferences": "auto",
+          "allFieldsExtracted": true
+        }],
+        statusCode: 200
+      },
+      
+          
+      }
+      
+    return responseData.data;
+
+  
+
+// let response = await processScanner({
+//   image_base64: data?.image_base64,
+//   partNumbers: data?.partNumbers,
+// });
+// console.log("resssssssssssssssssssssssssssssssss", response);
+
+//  response.data = {
+//       ...response.data,
+      
+//     };
+//      return response;
+
+// console.log("resultresultresultresult",result);
+
+
   } catch (error: any) {
     console.log("errrrrrrrrrrrrrrrrrrrrrrrrrrrrr", error);
 
@@ -476,36 +522,35 @@ export async function CreateCaptureStock(
   mongoConnString: string,
   code: string
 ) {
-  console.log("codecodesssssssssssssssssssssssssssssssss", code);
 
   const db = await getDB(mongoConnString);
-  try {
-     const { image_base64 } = input;
+  // try {
+  //    const { image_base64 } = input;
 
-  const barcode = await decodeBarcodeBase64(image_base64);
-  const ocr = await ocrBase64(image_base64);
+//   const barcode = await decodeBarcodeBase64(image_base64);
+//   const ocr = await ocrBase64(image_base64);
 
-const template = {
-  partIdentifiers: ["TYPE"],
-  ocrFields: {
-    lot: "LOT",
-    quantity: "(Q)QTY",
-  },
-  barcodeFields: {},
-  auditUUID: null
-};
+// const template = {
+//   partIdentifiers: ["TYPE"],
+//   ocrFields: {
+//     lot: "LOT",
+//     quantity: "(Q)QTY",
+//   },
+//   barcodeFields: {},
+//   auditUUID: null
+// };
 
 
-  const extracted = mapExtractedData(barcode || "", ocr, template);
+//   const extracted = mapExtractedData(barcode || "", ocr, template);
 
-  console.log({ 
-    "barcode":barcode,
-     "ocr": ocr,
-      "extracted": extracted });
-  } catch (error) {
-    console.log("errr", error);
+//   console.log({ 
+//     "barcode":barcode,
+//      "ocr": ocr,
+//       "extracted": extracted });
+//   } catch (error) {
+//     console.log("errr", error);
     
-  }
+//   }
   // try {
   //   const worker = await createWorker("eng");
 
@@ -525,373 +570,454 @@ const template = {
     
   // }
 
-  // try {
-    // let datas: any;
+  try {
+    let datas: any;
 
-    // datas = await fastapiData(input.receiptNumber, mongoConnString);
+    datas = await fastapiData(input.receiptNumber, mongoConnString);
+    console.log("datasdatas", datas);
+    
 
-    // const isInvoiceEnabled = await invoicePresent(mongoConnString);
+    const isInvoiceEnabled = await invoicePresent(mongoConnString);
 
-    // let reqData = {
-    //   image_base64: input.image_base64 ? input.image_base64 : "",
-    //   partNumbers: datas?.partNumbers,
-    //   ecia_standards: datas?.barcodeStandardData?.entityDetails,
-    //   trialRun: input.trialRun,
-    //   templateName: "",
-    //   ocr: {
-    //     disable: true,
-    //     data: {
-    //       partNumber: { value: "", isSelected: false },
-    //       quantity: { value: "", isSelected: false },
-    //       manufDate: { value: "", isSelected: false },
-    //       lotNumber: { value: "", isSelected: false },
-    //     },
-    //   },
-    //   barcode: {
-    //     disable: true,
-    //     selectedData: "",
-    //     type: "",
-    //     delimiter: {
-    //       type: "",
-    //       totalField: "",
-    //       partNumber: { position: "", identifier: "" },
-    //       quantity: { position: "", identifier: "" },
-    //       manufDate: { position: "", identifier: "" },
-    //       lotNumber: { position: "", identifier: "" },
-    //       identifier: false,
-    //     },
-    //     positional: {
-    //       partNumber: { startIndex: "", endIndex: "" },
-    //       quantity: { startIndex: "", endIndex: "" },
-    //       manufDate: { startIndex: "", endIndex: "" },
-    //       lotNumber: { startIndex: "", endIndex: "" },
-    //     },
-    //   },
-    //   tenantId: mongoConnString,
-    //   invoice: isInvoiceEnabled.invoice ? true : false,
-    // };
-  //   let cameraCapturedata: any = await fastApi(reqData, mongoConnString);
+    let reqData = {
+      image_base64: input.image_base64 ? input.image_base64 : "",
+      partNumbers: datas?.partNumbers,
+      ecia_standards: datas?.barcodeStandardData?.entityDetails,
+      trialRun: input.trialRun,
+      templateName: "",
+      ocr: {
+        disable: true,
+        data: {
+          partNumber: { value: "", isSelected: false },
+          quantity: { value: "", isSelected: false },
+          manufDate: { value: "", isSelected: false },
+          lotNumber: { value: "", isSelected: false },
+        },
+      },
+      barcode: {
+        disable: true,
+        selectedData: "",
+        type: "",
+        delimiter: {
+          type: "",
+          totalField: "",
+          partNumber: { position: "", identifier: "" },
+          quantity: { position: "", identifier: "" },
+          manufDate: { position: "", identifier: "" },
+          lotNumber: { position: "", identifier: "" },
+          identifier: false,
+        },
+        positional: {
+          partNumber: { startIndex: "", endIndex: "" },
+          quantity: { startIndex: "", endIndex: "" },
+          manufDate: { startIndex: "", endIndex: "" },
+          lotNumber: { startIndex: "", endIndex: "" },
+        },
+      },
+      tenantId: mongoConnString,
+      invoice: isInvoiceEnabled.invoice ? true : false,
+    };
+    let cameraCapturedata: any = await fastApi(reqData, mongoConnString);
+    console.log("cameraCapturedatacameraCapturedata", cameraCapturedata);
+    
 
-  //   if (cameraCapturedata.statusCode === 401) {
-  //     return {
-  //       message: "Select the Template",
-  //       status: true,
-  //       statusCode: 401,
-  //     };
-  //   }
-  //   if (
-  //     cameraCapturedata.statusCode === 500 ||
-  //     cameraCapturedata.statusCode === 404
-  //   ) {
-  //     return cameraCapturedata;
-  //   }
-  //   const cameraCapture = {
-  //     ...cameraCapturedata.details[0],
-  //     partNumber: cameraCapturedata.details[0].partNumber,
-  //     receiptNumber: input.receiptNumber,
-  //     extracted_sticker: input.image_base64,
-  //   };
-  //   let maping = {
-  //     partNumber: cameraCapture?.partNumber,
-  //     receiptNumber: input.receiptNumber,
-  //   };
-  //   let manufacture: any;
+    if (cameraCapturedata.statusCode === 401) {
+      return {
+        message: "Select the Template",
+        status: true,
+        statusCode: 401,
+      };
+    }
+    if (
+      cameraCapturedata.statusCode === 500 ||
+      cameraCapturedata.statusCode === 404
+    ) {
+      return cameraCapturedata;
+    }
+    let cameraCapture = {
+      ...cameraCapturedata.details[0],
+      partNumber: cameraCapturedata.details[0].partNumber,
+      receiptNumber: input.receiptNumber,
+      extracted_sticker: input.image_base64,
+    };
+    let maping = {
+      partNumber: cameraCapture?.partNumber,
+      receiptNumber: input.receiptNumber,
+    };
+    let manufacture: any;
 
-  //   manufacture = await getByPartNumber(mongoConnString, maping);
+    manufacture = await getByPartNumber(mongoConnString, maping);
+    console.log("manufacturemanufacture", maping);
+    
+    let formattedStockDataArray: FormattedStockData[] = [];
 
-  //   let formattedStockDataArray: FormattedStockData[] = [];
+    if (!manufacture?.data) {
+      return {
+        message: manufacture.message,
+        status: 404,
+        statusCode: 400,
+      };
+    }
 
-  //   if (!manufacture?.data) {
-  //     return {
-  //       message: manufacture.message,
-  //       status: 404,
-  //       statusCode: 400,
-  //     };
-  //   }
+    //------------------audit-----------------------//
+    // let incomingAudit = await db.printerConfigs
+    //   .findOne({
+    //     type: "partsInPrinterConfig",
+    //   })
+    //   .select("audit");
 
-  //   //------------------audit-----------------------//
-  //   let incomingAudit = await db.printerConfigs
-  //     .findOne({
-  //       type: "partsInPrinterConfig",
-  //     })
-  //     .select("audit");
+    // if (incomingAudit.audit && cameraCapture.auditRun) {
+    //   let data = await audit(cameraCapture, mongoConnString);
 
-  //   if (incomingAudit.audit && cameraCapture.auditRun) {
-  //     let data = await audit(cameraCapture, mongoConnString);
+    //   if (data?.auditMatchPercentage) {
+    //     return {
+    //       message: data.sendStatus.status,
+    //       data,
+    //       statusCode: 202,
+    //     };
+    //   } else if (data?.statusCode === 404) {
+    //     return {
+    //       message: data.message,
+    //       data,
+    //       statusCode: 400,
+    //     };
+    //   } else {
+    //     return {
+    //       message: data?.auditStatus,
+    //       data,
+    //       statusCode: 200,
+    //     };
+    //   }
+    // }
+    //------------------audit-----------------------//
+console.log("cameraCapturecameraCapture", cameraCapture);
 
-  //     if (data?.auditMatchPercentage) {
-  //       return {
-  //         message: data.sendStatus.status,
-  //         data,
-  //         statusCode: 202,
-  //       };
-  //     } else if (data?.statusCode === 404) {
-  //       return {
-  //         message: data.message,
-  //         data,
-  //         statusCode: 400,
-  //       };
-  //     } else {
-  //       return {
-  //         message: data?.auditStatus,
-  //         data,
-  //         statusCode: 200,
-  //       };
-  //     }
-  //   }
-  //   //------------------audit-----------------------//
+//     if (!cameraCapture.allFieldsExtracted) {
+//       if (
+//         cameraCapture.lotNumberExtracted === false &&
+//         cameraCapture.quantity !== manufacture.data.quantity
+//       ) {
+//         let modifiedManufactureData: {
+//           MOQ: number;
+//           [key: string]: any;
+//         } = {
+//           MOQ: 0,
+//         };
 
-  //   if (!cameraCapture.allFieldsExtracted) {
-  //     if (
-  //       cameraCapture.lotNumberExtracted === false &&
-  //       cameraCapture.quantity !== manufacture.data.quantity
-  //     ) {
-  //       let modifiedManufactureData: {
-  //         MOQ: number;
-  //         [key: string]: any;
-  //       } = {
-  //         MOQ: 0,
-  //       };
+//         if (manufacture.data) {
+//           modifiedManufactureData = {
+//             ...manufacture.data,
+//             MOQ: manufacture.data.quantity,
+//           };
+//           delete modifiedManufactureData.quantity;
+//         }
 
-  //       if (manufacture.data) {
-  //         modifiedManufactureData = {
-  //           ...manufacture.data,
-  //           MOQ: manufacture.data.quantity,
-  //         };
-  //         delete modifiedManufactureData.quantity;
-  //       }
+//         const datas = {
+//           ...modifiedManufactureData,
+//           ...cameraCapture,
+//         };
 
-  //       const datas = {
-  //         ...modifiedManufactureData,
-  //         ...cameraCapture,
-  //       };
+//         return {
+//           message: "lotNumberQty",
+//           data: datas,
+//           status: true,
+//           statusCode: 400,
+//         };
+//       } else if (
+//         cameraCapture.manufdateExtracted === false &&
+//         cameraCapture.quantity !== manufacture.data.quantity
+//       ) {
+//         let modifiedManufactureData: {
+//           MOQ: number;
+//           [key: string]: any;
+//         } = {
+//           MOQ: 0,
+//         };
+// console.log("modifiedManufactureDatamodifiedManufactureData", modifiedManufactureData);
 
-  //       return {
-  //         message: "lotNumberQty",
-  //         data: datas,
-  //         status: true,
-  //         statusCode: 400,
-  //       };
-  //     } else if (
-  //       cameraCapture.manufdateExtracted === false &&
-  //       cameraCapture.quantity !== manufacture.data.quantity
-  //     ) {
-  //       let modifiedManufactureData: {
-  //         MOQ: number;
-  //         [key: string]: any;
-  //       } = {
-  //         MOQ: 0,
-  //       };
+//         if (manufacture.data) {
+//           modifiedManufactureData = {
+//             ...manufacture.data,
+//             MOQ: manufacture.data.quantity,
+//           };
+//           delete modifiedManufactureData.quantity;
+//         }
 
-  //       if (manufacture.data) {
-  //         modifiedManufactureData = {
-  //           ...manufacture.data,
-  //           MOQ: manufacture.data.quantity,
-  //         };
-  //         delete modifiedManufactureData.quantity;
-  //       }
+//         const datas = {
+//           ...modifiedManufactureData,
+//           ...cameraCapture,
+//         };
 
-  //       const datas = {
-  //         ...modifiedManufactureData,
-  //         ...cameraCapture,
-  //       };
+//         return {
+//           message: "manufQty",
+//           data: datas,
+//           status: true,
+//           statusCode: 400,
+//         };
+//       } else if (
+//         cameraCapture.lotNumberExtracted === false &&
+//         cameraCapture.manufdateExtracted === false
+//       ) {
+//         let datas = {
+//           ...manufacture.data,
+//           ...cameraCapture,
+//         };
+//         return {
+//           message: "ManufLot",
+//           data: datas,
+//           status: true,
+//           statusCode: 400,
+//         };
+//       } else if (
+//         cameraCapture.lotNumberExtracted === false &&
+//         cameraCapture.manufdateExtracted === false &&
+//         cameraCapture.quantityExtracted === false
+//       ) {
+//         let datas = {
+//           ...manufacture.data,
+//           ...cameraCapture,
+//         };
+//         return {
+//           message: "ManufLotQty",
+//           data: datas,
+//           status: true,
+//           statusCode: 400,
+//         };
+//       } else if (cameraCapture.lotNumberExtracted === false) {
+//         let datas = {
+//           ...manufacture.data,
+//           ...cameraCapture,
+//         };
+//         return {
+//           message: "lotNumber cannot read",
+//           data: datas,
+//           status: true,
+//           statusCode: 400,
+//         };
+//       } else if (cameraCapture.manufdateExtracted === false) {
+//         let datas = {
+//           ...manufacture.data,
+//           ...cameraCapture,
+//         };
+//         return {
+//           message: "ManufDate",
+//           data: datas,
+//           status: true,
+//           statusCode: 400,
+//         };
+//       }
+//     } else if (
+//       Number(manufacture?.data?.quantity) != Number(cameraCapture.quantity)
+//     ) {
+//       let modifiedManufactureData: {
+//         MOQ: number;
+//         [key: string]: any;
+//       } = {
+//         MOQ: 0,
+//       };
+//       if (manufacture.data) {
+//         modifiedManufactureData = {
+//           ...manufacture.data,
+//           MOQ: manufacture.data.quantity,
+//         };
+//         delete modifiedManufactureData.quantity;
+//       }
 
-  //       return {
-  //         message: "manufQty",
-  //         data: datas,
-  //         status: true,
-  //         statusCode: 400,
-  //       };
-  //     } else if (
-  //       cameraCapture.lotNumberExtracted === false &&
-  //       cameraCapture.manufdateExtracted === false
-  //     ) {
-  //       let datas = {
-  //         ...manufacture.data,
-  //         ...cameraCapture,
-  //       };
-  //       return {
-  //         message: "ManufLot",
-  //         data: datas,
-  //         status: true,
-  //         statusCode: 400,
-  //       };
-  //     } else if (
-  //       cameraCapture.lotNumberExtracted === false &&
-  //       cameraCapture.manufdateExtracted === false &&
-  //       cameraCapture.quantityExtracted === false
-  //     ) {
-  //       let datas = {
-  //         ...manufacture.data,
-  //         ...cameraCapture,
-  //       };
-  //       return {
-  //         message: "ManufLotQty",
-  //         data: datas,
-  //         status: true,
-  //         statusCode: 400,
-  //       };
-  //     } else if (cameraCapture.lotNumberExtracted === false) {
-  //       let datas = {
-  //         ...manufacture.data,
-  //         ...cameraCapture,
-  //       };
-  //       return {
-  //         message: "lotNumber cannot read",
-  //         data: datas,
-  //         status: true,
-  //         statusCode: 400,
-  //       };
-  //     } else if (cameraCapture.manufdateExtracted === false) {
-  //       let datas = {
-  //         ...manufacture.data,
-  //         ...cameraCapture,
-  //       };
-  //       return {
-  //         message: "ManufDate",
-  //         data: datas,
-  //         status: true,
-  //         statusCode: 400,
-  //       };
-  //     }
-  //   } else if (
-  //     Number(manufacture?.data?.quantity) != Number(cameraCapture.quantity)
-  //   ) {
-  //     let modifiedManufactureData: {
-  //       MOQ: number;
-  //       [key: string]: any;
-  //     } = {
-  //       MOQ: 0,
-  //     };
-  //     if (manufacture.data) {
-  //       modifiedManufactureData = {
-  //         ...manufacture.data,
-  //         MOQ: manufacture.data.quantity,
-  //       };
-  //       delete modifiedManufactureData.quantity;
-  //     }
+//       const datas = {
+//         ...modifiedManufactureData,
+//         ...cameraCapture,
+//       };
 
-  //     const datas = {
-  //       ...modifiedManufactureData,
-  //       ...cameraCapture,
-  //     };
+//       return {
+//         message: "quantity",
+//         data: datas,
+//         status: true,
+//         statusCode: 200,
+//       };
+//     } else {
+//       console.log("elseeeeeeeeeeeeeeeee");
+      
+//       if (manufacture?.data) {
+//         const formattedStockData: FormattedStockData = {
+//           entryPreferences: input.entryPreferences,
+//           receiptNumber: input.receiptNumber,
+//           lotNumber: cameraCapture?.lotNumber ? cameraCapture?.lotNumber : "-",
+//           partNumber: cameraCapture?.partNumber,
+//           manufactureDate: cameraCapture?.manufDate
+//             ? convertToMongoDate(cameraCapture?.manufDate)
+//               ? convertToMongoDate(cameraCapture?.manufDate)
+//               : cameraCapture?.manufDate
+//             : "-",
+//           extracted_sticker: cameraCapture.extracted_sticker,
+//           dateOfReceipt: manufacture.data?.dateOfReceipt,
+//           manufacturer: manufacture.data?.manufacturer,
+//           quantity: manufacture.data?.quantity,
+//           internalPartNo: manufacture.data?.internalPartNo,
+//           partLocation: manufacture.data?.partLocation,
+//           description: manufacture.data?.description,
+//           idCode: manufacture.data?.idCode,
+//         };
+//         formattedStockDataArray.push(formattedStockData);
+//       }
 
-  //     return {
-  //       message: "quantity",
-  //       data: datas,
-  //       status: true,
-  //       statusCode: 200,
-  //     };
-  //   } else {
-  //     if (manufacture?.data) {
-  //       const formattedStockData: FormattedStockData = {
-  //         entryPreferences: input.entryPreferences,
-  //         receiptNumber: input.receiptNumber,
-  //         lotNumber: cameraCapture?.lotNumber ? cameraCapture?.lotNumber : "-",
-  //         partNumber: cameraCapture?.partNumber,
-  //         manufactureDate: cameraCapture?.manufDate
-  //           ? convertToMongoDate(cameraCapture?.manufDate)
-  //             ? convertToMongoDate(cameraCapture?.manufDate)
-  //             : cameraCapture?.manufDate
-  //           : "-",
-  //         extracted_sticker: cameraCapture.extracted_sticker,
-  //         dateOfReceipt: manufacture.data?.dateOfReceipt,
-  //         manufacturer: manufacture.data?.manufacturer,
-  //         quantity: manufacture.data?.quantity,
-  //         internalPartNo: manufacture.data?.internalPartNo,
-  //         partLocation: manufacture.data?.partLocation,
-  //         description: manufacture.data?.description,
-  //         idCode: manufacture.data?.idCode,
-  //       };
-  //       formattedStockDataArray.push(formattedStockData);
-  //     }
+//       if (input.entryPreferences === "semi") {
+//         return {
+//           message: formattedStockDataArray
+//             ? "semi created successfully!"
+//             : "Error in creating stock, Add part unique Id in 'Parts-In' configuration.",
+//           data: formattedStockDataArray,
+//           statusCode: formattedStockDataArray ? 307 : 500,
+//         };
+//       } else {
+//         const result = cameraCapturedata.details.map((detail: any) => {
+//           const output: any = {};
+//           const fields = detail.fields || [];
 
-  //     if (input.entryPreferences === "semi") {
-  //       return {
-  //         message: formattedStockDataArray
-  //           ? "semi created successfully!"
-  //           : "Error in creating stock, Add part unique Id in 'Parts-In' configuration.",
-  //         data: formattedStockDataArray,
-  //         statusCode: formattedStockDataArray ? 307 : 500,
-  //       };
-  //     } else {
-  //       const result = cameraCapturedata.details.map((detail: any) => {
-  //         const output: any = {};
-  //         const fields = detail.fields || [];
+//           fields.forEach((field: any) => {
+//             if (field in detail) {
+//               output[field] = detail[field];
+//             }
+//           });
 
-  //         fields.forEach((field: any) => {
-  //           if (field in detail) {
-  //             output[field] = detail[field];
-  //           }
-  //         });
+//           return output;
+//         });
+//         let format = formattedStockDataArray.map((m) => ({
+//           ...result[0],
+//           fields: cameraCapturedata.details[0].fields,
+//           uniqueId: m.uniqueId,
+//           manufacturer: m.manufacturer,
+//           partLocation: m.partLocation,
+//           receiptNumber: m.receiptNumber,
+//           entryPreferences: m.entryPreferences,
+//           internalPartNo: m.internalPartNo,
+//           idCode: m.idCode,
+//           extractedImage: m.extractedImage,
+//           dateOfReceipt: m?.dateOfReceipt,
+//           description: m?.description,
+//           // auditStatus: !incomingAudit.audit ? "Noaudit" : "Not Done",
+//         }));
+//         let queryResult: any = format;
+//         let { auditType } = await db.printerConfigs
+//           .findOne({
+//             type: "partsInPrinterConfig",
+//           })
+//           .select("auditType");
+//         if (auditType && auditType !== "Full") {
+//           let transation = {
+//             receiptNumber: input.receiptNumber,
+//             internalPartNo: formattedStockDataArray[0].internalPartNo,
+//             partNumber: formattedStockDataArray[0].partNumber,
+//             quantity: formattedStockDataArray[0].quantity,
+//           };
+//           const isInvoicePresent = await invoicePresent(mongoConnString);
+//           if (isInvoicePresent.invoice) {
+//             await updateInoviceTranscation(transation, mongoConnString);
+//           }
+//         }
+//         let data = {
+//           ...result[0],
+//           fields: cameraCapturedata.details[0].fields,
+//           dateOfReceipt: queryResult[0]?.dateOfReceipt,
+//           manufacturer: queryResult[0].manufacturer,
+//           internalPartNo: queryResult[0].internalPartNo,
+//           idCode: queryResult[0].idCode,
+//           partLocation: queryResult[0].partLocation,
+//           description: queryResult[0].description,
+//           entryPreferences: queryResult[0].entryPreferences,
+//           manufDate: queryResult[0]?.manufDate,
+//           extracted_sticker: cameraCapture.extracted_sticker,
+//         };
+//         return {
+//           message: queryResult
+//             ? "Stock created successfully!"
+//             : "Error in creating stock",
+//           data,
+//           statusCode: 200,
+//         };
+//       }
+//     }
 
-  //         return output;
-  //       });
-  //       let format = formattedStockDataArray.map((m) => ({
-  //         ...result[0],
-  //         fields: cameraCapturedata.details[0].fields,
-  //         uniqueId: m.uniqueId,
-  //         manufacturer: m.manufacturer,
-  //         partLocation: m.partLocation,
-  //         receiptNumber: m.receiptNumber,
-  //         entryPreferences: m.entryPreferences,
-  //         internalPartNo: m.internalPartNo,
-  //         idCode: m.idCode,
-  //         extractedImage: m.extractedImage,
-  //         dateOfReceipt: m?.dateOfReceipt,
-  //         description: m?.description,
-  //         auditStatus: !incomingAudit.audit ? "Noaudit" : "Not Done",
-  //       }));
-  //       let queryResult: any = format;
-  //       let { auditType } = await db.printerConfigs
-  //         .findOne({
-  //           type: "partsInPrinterConfig",
-  //         })
-  //         .select("auditType");
-  //       if (auditType && auditType !== "Full") {
-  //         let transation = {
-  //           receiptNumber: input.receiptNumber,
-  //           internalPartNo: formattedStockDataArray[0].internalPartNo,
-  //           partNumber: formattedStockDataArray[0].partNumber,
-  //           quantity: formattedStockDataArray[0].quantity,
-  //         };
-  //         const isInvoicePresent = await invoicePresent(mongoConnString);
-  //         if (isInvoicePresent.invoice) {
-  //           await updateInoviceTranscation(transation, mongoConnString);
-  //         }
-  //       }
-  //       let data = {
-  //         ...result[0],
-  //         fields: cameraCapturedata.details[0].fields,
-  //         dateOfReceipt: queryResult[0]?.dateOfReceipt,
-  //         manufacturer: queryResult[0].manufacturer,
-  //         internalPartNo: queryResult[0].internalPartNo,
-  //         idCode: queryResult[0].idCode,
-  //         partLocation: queryResult[0].partLocation,
-  //         description: queryResult[0].description,
-  //         entryPreferences: queryResult[0].entryPreferences,
-  //         manufDate: queryResult[0]?.manufDate,
-  //         extracted_sticker: cameraCapture.extracted_sticker,
-  //       };
-  //       return {
-  //         message: queryResult
-  //           ? "Stock created successfully!"
-  //           : "Error in creating stock",
-  //         data,
-  //         statusCode: 200,
-  //       };
-  //     }
-  //   }
-  // } catch (error) {
-  //   console.log("errrrr", error);
+const result = cameraCapturedata.details.map((detail: any) => {
+          const output: any = {};
+          const fields = detail.fields || [];
 
-  //   return {
-  //     message: "Something went wrong, Please contact admin!!",
-  //     error: error,
-  //     status: 500,
-  //     statusCode: 500,
-  //   };
-  // }
+          fields.forEach((field: any) => {
+            if (field in detail) {
+              output[field] = detail[field];
+            }
+          });
+
+          return output;
+        });
+        console.log("resultresultresult", result);
+        
+        let format = formattedStockDataArray.map((m) => ({
+          ...result[0],
+          fields: cameraCapturedata.details[0].fields,
+          uniqueId: m.uniqueId,
+          manufacturer: m.manufacturer,
+          partLocation: m.partLocation,
+          receiptNumber: m.receiptNumber,
+          entryPreferences: m.entryPreferences,
+          internalPartNo: m.internalPartNo,
+          idCode: m.idCode,
+          extractedImage: m.extractedImage,
+          dateOfReceipt: m?.dateOfReceipt,
+          description: m?.description,
+          // auditStatus: !incomingAudit.audit ? "Noaudit" : "Not Done",
+        }));
+        console.log("formatformat", format);
+        
+        let queryResult: any = format;
+        let { auditType } = await db.printerConfigs
+          .findOne({
+            type: "partsInPrinterConfig",
+          })
+          .select("auditType");
+        if (auditType && auditType !== "Full") {
+          let transation = {
+            receiptNumber: input.receiptNumber,
+            internalPartNo: formattedStockDataArray[0].internalPartNo,
+            partNumber: formattedStockDataArray[0].partNumber,
+            quantity: formattedStockDataArray[0].quantity,
+          };
+          const isInvoicePresent = await invoicePresent(mongoConnString);
+          if (isInvoicePresent.invoice) {
+            await updateInoviceTranscation(transation, mongoConnString);
+          }
+        }
+        console.log("queryResultqueryResult", queryResult);
+        
+        let data = {
+          ...result[0],
+          fields: cameraCapturedata.details[0].fields,
+          // dateOfReceipt: queryResult[0]?.dateOfReceipt,
+          // manufacturer: queryResult[0].manufacturer,
+          // internalPartNo: queryResult[0].internalPartNo,
+          // idCode: queryResult[0].idCode,
+          // partLocation: queryResult[0].partLocation,
+          // description: queryResult[0].description,
+          // entryPreferences: queryResult[0].entryPreferences,
+          // manufDate: queryResult[0]?.manufDate,
+          extracted_sticker: cameraCapture.extracted_sticker,
+        };
+        return {
+          message: queryResult
+            ? "Stock created successfully!"
+            : "Error in creating stock",
+          data,
+          statusCode: 200,
+        };
+  } catch (error) {
+    console.log("errrrr", error);
+
+    return {
+      message: "Something went wrong, Please contact admin!!",
+      error: error,
+      status: 500,
+      statusCode: 500,
+    };
+  }
 }
 
 export async function audit(input: any, mongoConnString: string) {

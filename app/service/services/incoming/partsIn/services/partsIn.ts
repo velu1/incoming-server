@@ -230,7 +230,7 @@ export async function getByPartNumber(
         message: "Not found in Master Data",
       };
     }
-  } catch (error) {
+  } catch (error) {    
     return { data: null, status: false };
   }
 }
