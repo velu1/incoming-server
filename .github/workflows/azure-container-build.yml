@@ -1,0 +1,42 @@
+name: Azure Container Build
+
+on:
+  push:
+    branches: [main, dev, stage]
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Get commit hash
+        id: commit-hash
+        run: echo "hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Set Docker tags
+        id: docker-tags
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "latest-tag=${{ secrets.ACR_LOGIN_SERVER }}/incoming-service:latest" >> $GITHUB_OUTPUT
+            echo "hash-tag=${{ secrets.ACR_LOGIN_SERVER }}/incoming-service:${{ steps.commit-hash.outputs.hash }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/stage" ]]; then
+            echo "latest-tag=${{ secrets.ACR_LOGIN_SERVER }}/incoming-service:stage-latest" >> $GITHUB_OUTPUT
+            echo "hash-tag=${{ secrets.ACR_LOGIN_SERVER }}/incoming-service:stage-${{ steps.commit-hash.outputs.hash }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
+            echo "latest-tag=${{ secrets.ACR_LOGIN_SERVER }}/incoming-service:dev-latest" >> $GITHUB_OUTPUT
+            echo "hash-tag=${{ secrets.ACR_LOGIN_SERVER }}/incoming-service:dev-${{ steps.commit-hash.outputs.hash }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Log in to ACR
+        run: echo "${{ secrets.ACR_PASSWORD }}" | docker login ${{ secrets.ACR_LOGIN_SERVER }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ steps.docker-tags.outputs.latest-tag }} -t ${{ steps.docker-tags.outputs.hash-tag }} .
+
+      - name: Push Docker images
+        run: |
+          docker push ${{ steps.docker-tags.outputs.latest-tag }}
+          docker push ${{ steps.docker-tags.outputs.hash-tag }}
