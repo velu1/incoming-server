@@ -1,21 +1,18 @@
-// import { extractOCR } from "./ocr.js";
-import { extractBarcode } from "./barcode.js";
+import { extractOCR } from "./ocr.js";
+import { extractAllBarcodes } from "./barcode.js";
 import { mapExtractedData } from "./mapper.js";
 import { base64ToBuffer } from "./utils.js";
 
-export const processScanner = async ({ image_base64, partNumbers = [] }) => {
+export const processScanner = async ({ image_base64, partNumbers = [], placeholders = {} }) => {
   const buffer = base64ToBuffer(image_base64);
 
-  // OCR disabled temporarily — high RAM usage
-  // const [barcodeText, ocrText] = await Promise.all([
-  //   extractBarcode(buffer),
-  //   extractOCR(buffer),
-  // ]);
+  const [allBarcodes, ocrText] = await Promise.all([
+    extractAllBarcodes(buffer),
+    extractOCR(buffer),
+  ]);
 
-  const barcodeText = await extractBarcode(buffer);
-  const ocrText = "";
-
-  const extracted = mapExtractedData(barcodeText || "", ocrText);
+  console.log("[scanner] barcodes found:", allBarcodes);
+  const extracted = mapExtractedData(allBarcodes, ocrText, placeholders, partNumbers);
 
   if (!extracted.partNumberExtracted) {
     return {

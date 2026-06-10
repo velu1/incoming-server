@@ -127,50 +127,26 @@ export const fastApi = async (data: any, mongoConnString: string) => {
     //   ...response.data,
 
     // };
-    // console.log("reqDataaa", data);
-
-     let responseData = {
-      data: { details :[{
-          "fields": ["partNumber", "quantity", "lotNumber", "manufactureDate", "internalPartNo"],
-          "partNumber": "4E-060019-3R",
-          "quantity": 5000,
-          "lotNumber": [
-              "14773695"
-          ],
-          "manufactureDate": "-",
-          "invoiceDate": "2025-04-29T18:36:11.981Z",
-          "maker": "ROYAL OHM PB-FREE",
-          "internalPartNo": "INT51",
-          "partLocation": "LOC51",
-          "entryPreferences": "auto",
-          "allFieldsExtracted": true
-        }],
-        statusCode: 200
-      },
-
-
-      }
-
-    return responseData.data;
-
-
-// let response = await processScanner({
-//   image_base64: data?.image_base64,
-//   partNumbers: data?.partNumbers,
-// });
-// console.log("resssssssssssssssssssssssssssssssss", response);
-
-//  response.data = {
-//       ...response.data,
-
-//     };
-//      return response;
-
-// console.log("resultresultresult",result);
+    console.log("reqDataaa", JSON.stringify(data));
+    
+    const response = await processScanner({
+      image_base64: data?.image_base64,
+      partNumbers: data?.partNumbers,
+      placeholders: data?.ocr?.placeholders,
+    });
+    console.log("processScanner response", JSON.stringify(response));
+    return response;
 
 
   } catch (error: any) {
-    console.log("errrrrrrrrrrrrrrrrrrrrrrrrrrrrr", error);
+    console.log("fastApi error", error);
+
+    if (!axios.isAxiosError(error)) {
+      return {
+        message: error?.message || "Image processing failed",
+        statusCode: 500,
+      };
+    }
 
     if (axios.isAxiosError(error)) {
       const axiosError = error as any;
@@ -320,14 +296,14 @@ export async function trailRun(input: any, mongoConnString: string) {
   data.partNumbers = partNumber;
   // data.ecia_standards = datas?.barcodeStandardData?.entityDetails;
   let cameraCapturedata: any = await fastApi(data, mongoConnString);
-  if (cameraCapturedata?.status_code != 200) {
+  if (cameraCapturedata?.statusCode !== 200) {
     return {
-      message: cameraCapturedata?.message,
-      statusCode: cameraCapturedata?.status_code,
+      message: cameraCapturedata?.message || "Trail run failed",
+      statusCode: cameraCapturedata?.statusCode || 500,
     };
   } else {
     return {
-      message: cameraCapturedata ? "Trail SucessFull!" : "Error Trail",
+      message: "Trail SucessFull!",
       data: cameraCapturedata?.details,
       statusCode: 200,
     };
@@ -456,7 +432,7 @@ export async function CreateCaptureStock(
       ecia_standards: datas?.barcodeStandardData?.entityDetails,
       trialRun: input.trialRun,
       templateName: "",
-      ocr: {
+      ocr: (input as any).ocr || {
         disable: true,
         data: {
           partNumber: { value: "", isSelected: false },
@@ -582,15 +558,22 @@ const result = cameraCapturedata.details.map((detail: any) => {
         }
         console.log("queryResultqueryResult", queryResult);
 
+        const masterData = manufacture.data;
         let data = {
           ...result[0],
           fields: cameraCapturedata.details[0].fields,
           extracted_sticker: cameraCapture.extracted_sticker,
+          // mapped data from master
+          internalPartNo: masterData?.internalPartNo || "",
+          manufacturer: masterData?.manufacturer || "",
+          partLocation: masterData?.partLocation || "",
+          description: masterData?.description || "",
+          idCode: masterData?.idCode || "",
+          dateOfReceipt: masterData?.dateOfReceipt || new Date(),
+          MOQ: masterData?.quantity || null,
         };
         return {
-          message: queryResult
-            ? "Stock created successfully!"
-            : "Error in creating stock",
+          message: "Stock created successfully!",
           data,
           statusCode: 200,
         };
