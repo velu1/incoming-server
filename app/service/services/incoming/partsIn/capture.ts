@@ -500,7 +500,7 @@ export async function CreateCaptureStock(
 
     if (!manufacture?.data) {
       return {
-        message: manufacture.message,
+        message: manufacture?.message || `Part number "${cameraCapture.partNumber}" not found in Master Data`,
         status: 404,
         statusCode: 400,
       };

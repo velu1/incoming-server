@@ -120,7 +120,7 @@ exports.createCaptureStock = async (req: Request, res: Response) => {
     } else if (CreateCaptureStock.statusCode === 200) {
       return res.status(200).send(CreateCaptureStock?.data);
     } else if (CreateCaptureStock.statusCode === 404) {
-      return res.status(500).send(CreateCaptureStock);
+      return res.status(404).send(CreateCaptureStock);
     }
   } catch (error) {
     partsInLogger.error(

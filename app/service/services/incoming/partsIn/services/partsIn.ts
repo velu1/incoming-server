@@ -211,6 +211,12 @@ export async function getByPartNumber(
         };
       }
     } else if (!isInvoicePresent?.invoice) {
+      if (!getMaster || getMaster.length === 0) {
+        return {
+          data: null,
+          message: `Part number "${input.partNumber}" not found in Master Data`,
+        };
+      }
       let masterData: any = {
         partNumber: getMaster[0].partNumber,
         quantity: getMaster[0].quantity,
@@ -230,8 +236,8 @@ export async function getByPartNumber(
         message: "Not found in Master Data",
       };
     }
-  } catch (error) {    
-    return { data: null, status: false };
+  } catch (error) {
+    return { data: null, status: false, message: "Error looking up part number" };
   }
 }
 
